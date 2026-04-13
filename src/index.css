@@ -1,0 +1,60 @@
+:root {
+  --page-bg: #f3f3f3;
+  --surface: #ffffff;
+  --line: #e0e0e0;
+  --line-strong: #bdbdbd;
+  --text-main: #1a1a1a;
+  --text-soft: #616161;
+  --accent: #0078d4;
+  --accent-hover: #005fb8;
+  --accent-text: #ffffff;
+  --heading-font: 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  --body-font: 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+
+  font-family: var(--body-font);
+  font-size: 16px;
+  line-height: 1.5;
+  color: var(--text-main);
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100svh;
+  color: var(--text-main);
+  background: var(--page-bg);
+}
+
+#root {
+  min-height: 100svh;
+}
+
+h1,
+h2 {
+  font-family: var(--heading-font);
+  margin: 0;
+  letter-spacing: -0.01em;
+  color: var(--text-main);
+  font-weight: 600;
+}
+
+h1 {
+  font-size: clamp(1.75rem, 4vw, 2.4rem);
+  line-height: 1.15;
+}
+
+h2 {
+  font-size: clamp(1.1rem, 2.8vw, 1.5rem);
+  font-weight: 600;
+}
+
+p {
+  margin: 0;
+}
