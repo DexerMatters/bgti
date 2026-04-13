@@ -288,7 +288,7 @@ function App() {
         {!loading && !loadError && !started ? (
           <section className="card intro anim-enter" key="intro">
             <img
-              src="https://images.unsplash.com/photo-1659480142923-0cd01191e0e9?auto=format&fit=crop&w=1200&q=80"
+              src="/images/board-game-intro.jpg"
               alt=""
               className="card-hero"
               aria-hidden="true"
@@ -365,7 +365,7 @@ function App() {
         {!loading && !loadError && started && result ? (
           <section className="card result anim-enter" key="result">
             <img
-              src="https://images.unsplash.com/photo-1547638375-ebf04735d792?auto=format&fit=crop&w=1200&q=80"
+              src="/images/dice-result.jpg"
               alt=""
               className="card-hero"
               aria-hidden="true"
