@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import './App.css'
 
-const DIMENSIONS = ['VJ', 'IC', 'RS', 'TM', 'LH', 'EA', 'NX', 'FD'] as const
+const DIMENSIONS = ['VJ', 'IC', 'RS', 'GS', 'GD', 'FD'] as const
 type Dimension = (typeof DIMENSIONS)[number]
 
 type Remark = {
@@ -33,26 +33,29 @@ const traitHint: Record<string, string> = {
   C: '精算师',
   R: '冒险者',
   S: '稳健者',
-  T: '主题派',
-  M: '机制派',
-  L: '轻量派',
-  H: '重度派',
-  E: '德式派',
-  A: '美式派',
-  N: '猎新派',
-  X: '精通派',
+  T: '沉浸派',
+  M: '策略派',
+  E: '探索派',
+  X: '精研派',
   F: '派对控',
   D: '沉浸者',
+}
+
+const DIMENSION_POLES: Record<Dimension, [string, string]> = {
+  VJ: ['V', 'J'],
+  IC: ['I', 'C'],
+  RS: ['R', 'S'],
+  GS: ['T', 'M'],
+  GD: ['E', 'X'],
+  FD: ['F', 'D'],
 }
 
 const DIMENSION_NAMES: Record<Dimension, string> = {
   VJ: '目标取向',
   IC: '决策风格',
   RS: '风险偏好',
-  TM: '吸引焦点',
-  LH: '游戏规模',
-  EA: '游戏风格',
-  NX: '探索方式',
+  GS: '游戏格调',
+  GD: '游戏投入',
   FD: '社交强度',
 }
 
@@ -62,10 +65,8 @@ const buildSummary = (picks: Array<{ dimension: string; winner: string }>) => {
     w.VJ === 'V' ? '在乎胜负' : '享受过程',
     w.IC === 'I' ? '凭直觉出牌' : '精算后落子',
     w.RS === 'R' ? '爱搏险棋' : '守住局面',
-    w.TM === 'T' ? '被主题世界观吸引' : '被规则机制吸引',
-    w.LH === 'L' ? '轻量聚会玩家' : '重型长局爱好者',
-    w.EA === 'E' ? '德式风格更对味' : '美式混沌更兴奋',
-    w.NX === 'N' ? '永远在追新游戏' : '把一款玩到极致',
+    w.GS === 'T' ? '沉浸于叙事与戏剧感' : '追求规则精妙与策略深度',
+    w.GD === 'E' ? '广泛探索轻量游戏' : '深度精研少数游戏',
     w.FD === 'F' ? '游戏是社交的载体' : '上桌就全情投入',
   ].join('，') + '。'
 }
@@ -180,7 +181,7 @@ function App() {
     [answers]
   )
   const totalQuestions = questions.length
-  const isFinished = totalQuestions > 0 && answeredCount === totalQuestions
+  const isFinished = totalQuestions > 0 && questions.every((q) => typeof answers[q.id] === 'number')
   const progress = totalQuestions === 0 ? 0 : (answeredCount / totalQuestions) * 100
 
   const currentQuestion =
@@ -196,10 +197,10 @@ function App() {
     if (!isFinished) return null
 
     const totals: Record<Dimension, number> = {
-      VJ: 0, IC: 0, RS: 0, TM: 0, LH: 0, EA: 0, NX: 0, FD: 0,
+      VJ: 0, IC: 0, RS: 0, GS: 0, GD: 0, FD: 0,
     }
     const maxTotals: Record<Dimension, number> = {
-      VJ: 0, IC: 0, RS: 0, TM: 0, LH: 0, EA: 0, NX: 0, FD: 0,
+      VJ: 0, IC: 0, RS: 0, GS: 0, GD: 0, FD: 0,
     }
 
     for (const question of questions) {
@@ -213,17 +214,19 @@ function App() {
     }
 
     const picks = DIMENSIONS.map((dimension) => {
-      const [first, second] = dimension.split('') as [string, string]
+      const [first, second] = DIMENSION_POLES[dimension]
       const score = totals[dimension]
       const max = maxTotals[dimension] || 1
       const winner = score >= 0 ? first : second
       const loser = score >= 0 ? second : first
-      const leaning = Math.round((Math.abs(score) / max) * 100)
+      const leaning = Math.min(100, Math.round((Math.abs(score) / max) * 100))
+      const tied = leaning === 0
       return {
         dimension,
         winner,
         loser,
         leaning,
+        tied,
       }
     })
 
@@ -271,7 +274,7 @@ function App() {
             <p className="eyebrow">BGTI</p>
             <h1>发现你的桌游风格</h1>
             <p className="subtext">
-              八维度 · 二十四题 · 依照直觉作答即可。
+              八维度 · {totalQuestions || 35}题 · 依照直觉作答即可。
             </p>
           </div>
           {started && !loading && !loadError ? (
@@ -387,6 +390,31 @@ function App() {
 
             <p className="result-copy">{result.summary}</p>
 
+            <div className="axis-section">
+              {result.picks.map((item) => {
+                const [leftCode, rightCode] = DIMENSION_POLES[item.dimension as Dimension]
+                const markerPct = item.winner === leftCode
+                  ? 50 - item.leaning * 0.4
+                  : 50 + item.leaning * 0.4
+                const fillLeft = Math.min(50, markerPct)
+                const fillWidth = Math.abs(50 - markerPct)
+                return (
+                  <div key={item.dimension} className="axis-row">
+                    <span className={`axis-pole${item.winner === leftCode ? ' axis-pole--active' : ''}`}>
+                      {traitHint[leftCode]}
+                    </span>
+                    <div className="axis-track">
+                      <div className="axis-fill" style={{ left: `${fillLeft}%`, width: `${fillWidth}%` }} />
+                      <div className="axis-marker" style={{ left: `${markerPct}%` }} />
+                    </div>
+                    <span className={`axis-pole${item.winner === rightCode ? ' axis-pole--active' : ''}`}>
+                      {traitHint[rightCode]}
+                    </span>
+                  </div>
+                )
+              })}
+            </div>
+
             <div className="remarks-list">
               {result.picks.map((item, i) => {
                 const remark = remarks[item.winner]
@@ -400,11 +428,11 @@ function App() {
                       <div>
                         <p className="remark-dim">{DIMENSION_NAMES[item.dimension as Dimension]}</p>
                         <p className="remark-arch">{traitHint[item.winner] ?? item.winner}</p>
-                        <p className="remark-vs">强于「{traitHint[item.loser] ?? item.loser}」</p>
+                        <p className="remark-vs">{item.tied ? '均势' : `强于「${traitHint[item.loser] ?? item.loser}」`}</p>
                       </div>
                       <div className="remark-badge">
                         <span className="remark-letter">{item.winner}</span>
-                        <span className="remark-pct">{item.leaning}%</span>
+                        <span className="remark-pct">{item.tied ? '—' : `${item.leaning}%`}</span>
                       </div>
                     </header>
                     {remark ? (
